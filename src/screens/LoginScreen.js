@@ -3,12 +3,12 @@ import { View, StyleSheet } from 'react-native';
 import { Input, Button, Text } from 'react-native-elements';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { Formik } from 'formik';
+import * as Yup from 'yup';
 
 export default function LoginScreen({ navigation }) {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const handleLogin = async () => {
+    const handleLogin = async ({ email, password }) => {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             navigation.replace('Home');
@@ -16,35 +16,58 @@ export default function LoginScreen({ navigation }) {
             setError('Error al iniciar sesión: ' + error.message);
         }
     };
+    const validationSchema = Yup.object().shape({
+        email: Yup.string()
+            .email('Email inválido')
+            .required('El campo email es requerido'),
+        password: Yup.string()
+            .required('La contraseña es requerida')
+    });
 
     return (
-        <View style={styles.container}>
-            <Text h3 style={styles.title}>Mi Comida Favorita</Text>
-            <Input
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                />
-            <Input
-                placeholder="Contraseña"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                />
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            <Button
-                title="Iniciar Sesión"
-                onPress={handleLogin}
-                containerStyle={styles.button}
-                />
-            <Button
-                title="Registrarse"
-                type="outline"
-                onPress={() => navigation.navigate('Register')}
-                containerStyle={styles.button}
-                />
-        </View>
+        <Formik
+            initialValues={{ email: '', password: '' }}
+            validationSchema={validationSchema}
+            onSubmit={values => handleLogin(values)}
+        >
+            {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+                <View style={styles.container}>
+                    <Text h3 style={styles.title}>Mi Comida Favorita</Text>
+                    
+                    <Input
+                        placeholder="Email"
+                        value={values.email}
+                        onChangeText={handleChange('email')}
+                        onBlur={handleBlur('email')}
+                        autoCapitalize="none"
+                    />
+                    {touched.email && errors.email && <Text style={styles.error}>{errors.email}</Text>}
+                    
+                    <Input
+                        placeholder="Contraseña"
+                        value={values.password}
+                        onChangeText={handleChange('password')}
+                        onBlur={handleBlur('password')}
+                        secureTextEntry
+                    />
+                    {touched.password && errors.password && <Text style={styles.error}>{errors.password}</Text>}
+
+                    <Button
+                        title="Iniciar Sesión"
+                        onPress={handleSubmit}
+                        containerStyle={styles.button}
+                    />
+                    <Button
+                        title="Registrarse"
+                        type="outline"
+                        onPress={() => navigation.navigate('Register')}
+                        containerStyle={styles.button}
+                    />
+
+                    {error ? <Text style={styles.error}>{error}</Text> : null}
+                </View>
+            )}
+        </Formik>
     );
 }
 
@@ -63,7 +86,6 @@ const styles = StyleSheet.create({
     },
     error: {
         color: 'red',
-        textAlign: 'center',
         marginBottom: 10,
     },
 });
