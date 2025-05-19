@@ -3,12 +3,12 @@ import { View, StyleSheet } from 'react-native';
 import { Input, Button, Text } from 'react-native-elements';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import { Formik } from 'formik';
+import * as Yup from 'yup';
 
 export default function RegisterScreen({ navigation }) {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const handleRegister = async () => {
+    const handleRegister = async ({ email, password }) => {
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             navigation.replace('Home');
@@ -16,36 +16,63 @@ export default function RegisterScreen({ navigation }) {
             setError('Error al registrarse: ' + error.message);
         }
     };
+    const validationSchema = Yup.object().shape({
+        email: Yup.string()
+            .email('Email inválido')
+            .required('El campo email es requerido'),
+        password: Yup.string()
+            .min(8, 'La contraseña debe contener mínimo 8 caracteres')
+            .matches(/[A-Z]/, 'La contraseña debe contener al menos una letra mayúscula')
+            .matches(/[a-z]/, 'La contraseña debe contener al menos una letra minúscula')
+            .matches(/[0-9]/, 'La contraseña debe contener al menos un número')
+            .matches(/[!@#$%^&*(),.?":{}|<>]/, 'La contraseña debe contener al menos un carácter especial (!@#$%^&*(),.?":{}|<>)')
+            .required('La contraseña es requerida'),
+    });
 
     return (
-        <View style={styles.container}>
-            <Text h3 style={styles.title}>Registro</Text>
-            <Input
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                />
-            <Input
-                placeholder="Contraseña"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                />
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            <Button
-                title="Registrarse"
-                onPress={handleRegister}
-                containerStyle={styles.button}
-                />
-            <Button
-                title="Volver al Login"
-                type="outline"
-                onPress={() => navigation.navigate('Login')}
-                containerStyle={styles.button}
-                />
-        </View>
-    )
+    <Formik
+        initialValues={{ email: '', password: '' }}
+        validationSchema={validationSchema}
+        onSubmit={values => handleRegister(values)}
+    >
+        {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
+            <View style={styles.container}>
+                <Text h3 style={styles.title}>Registro</Text>
+                <Input
+                    placeholder="Email"
+                    value={values.email}
+                    onChangeText={handleChange('email')}
+                    onBlur={handleBlur('email')}
+                    autoCapitalize="none"
+                    />
+                {touched.email && errors.email && <Text style={styles.error}>{errors.email}</Text>}
+
+                <Input
+                    placeholder="Contraseña"
+                    value={values.password}
+                    onChangeText={handleChange('password')}
+                    onBlur={handleBlur('password')}
+                    secureTextEntry
+                    />
+                {touched.password && errors.password && <Text style={styles.error}>{errors.password}</Text>}
+                
+                <Button
+                    title="Registrarse"
+                    onPress={handleSubmit}
+                    containerStyle={styles.button}
+                    />
+                <Button
+                    title="Volver al Login"
+                    type="outline"
+                    onPress={() => navigation.navigate('Login')}
+                    containerStyle={styles.button}
+                    />
+
+                {error ? <Text style={styles.error}>{error}</Text> : null}
+            </View>
+        )}
+    </Formik>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -63,7 +90,6 @@ const styles = StyleSheet.create({
     },
     error: {
         color: 'red',
-        textAlign: 'center',
         marginBottom: 10,
     },
 });
