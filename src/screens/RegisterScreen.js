@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { Input, Button, Text } from 'react-native-elements';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
@@ -14,12 +14,17 @@ import * as Yup from 'yup';
 export default function RegisterScreen({ navigation }) {
     // Estado para manejar errores de Firebase
     const [error, setError] = useState('');
+    // Estado para controlar el indicador de carga
+    const [isLoading, setIsLoading] = useState(false);
     
     /**
      * Maneja el proceso de registro con Firebase
      * @param {Object} values - Valores del formulario (email, password)
      */
     const handleRegister = async ({ email, password }) => {
+        setError('');
+        setIsLoading(true);
+        
         try {
             // Intenta crear usuario con Firebase Auth
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -28,6 +33,8 @@ export default function RegisterScreen({ navigation }) {
         } catch (error) {
             // Captura y muestra errores de Firebase
             setError('Error al registrarse: ' + error.message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -69,6 +76,7 @@ export default function RegisterScreen({ navigation }) {
                     onChangeText={handleChange('email')}
                     onBlur={handleBlur('email')}
                     autoCapitalize="none"
+                    editable={!isLoading}
                     />
                 {touched.email && errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
@@ -79,6 +87,7 @@ export default function RegisterScreen({ navigation }) {
                     onChangeText={handleChange('password')}
                     onBlur={handleBlur('password')}
                     secureTextEntry
+                    editable={!isLoading}
                     />
                 {touched.password && errors.password && <Text style={styles.error}>{errors.password}</Text>}
                 
@@ -89,14 +98,19 @@ export default function RegisterScreen({ navigation }) {
                     onChangeText={handleChange('confirmPassword')}
                     onBlur={handleBlur('confirmPassword')}
                     secureTextEntry
+                    editable={!isLoading}
                     />
                 {touched.confirmPassword && errors.confirmPassword && <Text style={styles.error}>{errors.confirmPassword}</Text>}
 
-                {/* Botón de registro */}
+                {/* Botón de registro con indicador de carga */}
                 <Button
-                    title="Registrarse"
+                    title={isLoading ? "Registrando..." : "Registrarse"}
                     onPress={handleSubmit}
                     containerStyle={styles.button}
+                    disabled={isLoading}
+                    icon={isLoading ? 
+                        <ActivityIndicator size="small" color="white" style={styles.loader} /> : 
+                        null}
                     />
                 
                 {/* Botón para regresar a la pantalla de login */}
@@ -105,6 +119,7 @@ export default function RegisterScreen({ navigation }) {
                     type="outline"
                     onPress={() => navigation.navigate('Login')}
                     containerStyle={styles.button}
+                    disabled={isLoading}
                     />
 
                 {/* Muestra errores generales (ej. errores de Firebase) */}
@@ -135,4 +150,7 @@ const styles = StyleSheet.create({
         color: 'red',
         marginBottom: 10,
     },
+    loader: {
+        marginRight: 10
+    }
 });
