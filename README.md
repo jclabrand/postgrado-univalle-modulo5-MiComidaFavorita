@@ -72,6 +72,22 @@ Sigue estos pasos para instalar y ejecutar el proyecto:
 6. **Navegación mejorada**:
    - Se configuró React Navigation para una navegación fluida entre las pantallas de inicio de sesión, registro y perfil.
 
+## Capturas
+
+![](./assets/captura-1.png)
+![](./assets/captura-2.png)
+![](./assets/captura-3.png)
+![](./assets/captura-4.png)
+![](./assets/captura-5.png)
+![](./assets/captura-6.png)
+![](./assets/captura-7.png)
+![](./assets/captura-8.png)
+![](./assets/captura-9.png)
+
+## Autor
+
+Juan Carlos Labrandero Cervantes 
+
 ## Licencia
 
 Este proyecto está bajo la licencia MIT. Consulta el archivo `LICENSE` para más detalles.
