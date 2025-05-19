@@ -148,7 +148,8 @@ const styles = StyleSheet.create({
     },
     error: {
         color: 'red',
-        marginBottom: 10,
+        marginBottom: 20,
+        marginTop: -10,
     },
     loader: {
         marginRight: 10
